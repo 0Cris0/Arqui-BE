@@ -1,0 +1,110 @@
+# Aquí defino todos los contenedores que voy a usar
+services:
+  api:
+    container_name: api_container
+    build: 
+      context: ./api/
+      dockerfile: ./Dockerfile
+    image: 0Cris0/arqui_api
+    ports:
+      - "3000:3000"
+    environment:
+      - PG_DB=arqui_api_db
+      - PG_USER=arqui
+      - PG_PASSWORD=arqui1234
+      - PG_HOST=arqui_db_container
+    depends_on:
+      - arqui_db_container
+    restart: unless-stopped
+    links:
+      - arqui_db_container
+      - mqtt_listener
+    networks:
+      - arqui-network
+  
+  api1:
+    container_name: api1_container
+    build: 
+      context: ./api/
+      dockerfile: ./Dockerfile
+    image: 0Cris0/arqui_api
+    ports:
+      - "3001:3001"
+    expose:
+      - 3001
+    environment:
+      - PG_DB=arqui_api_db
+      - PG_USER=arqui
+      - PG_PASSWORD=arqui1234
+      - PG_HOST=arqui_db_container
+    depends_on:
+      - arqui_db_container
+    restart: unless-stopped
+    links:
+      - arqui_db_container
+      - mqtt_listener
+    networks:
+      - arqui-network
+
+  api2:
+    container_name: api2_container
+    build: 
+      context: ./api/
+      dockerfile: ./Dockerfile
+    image: 0Cris0/arqui_api
+    ports:
+      - "3002:3002"
+    expose:
+      - 3002
+    environment:
+      - PG_DB=arqui_api_db
+      - PG_USER=arqui
+      - PG_PASSWORD=arqui1234
+      - PG_HOST=arqui_db_container
+    depends_on:
+      - arqui_db_container
+    restart: unless-stopped
+    links:
+      - arqui_db_container
+      - mqtt_listener
+    networks:
+      - arqui-network
+
+  mqtt_listener:
+    build:
+      context: ./listener/
+      dockerfile: ./Dockerfile
+    container_name: mqtt_listener
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    networks:
+      - arqui-network
+    depends_on:
+      - arqui_db_container
+    environment:
+      - PYTHONUNBUFFERED=1
+  
+  arqui_db_container:
+    container_name: arqui_db_container
+    image: postgres:12
+    ports:
+     - "5432:5432"
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_DB=arqui_api_db
+      - POSTGRES_USER=arqui
+      - POSTGRES_PASSWORD=arqui1234
+    volumes:
+      - arqui_db_data:/var/lib/postgresql/data
+    networks:
+      - arqui-network
+
+networks:
+  arqui-network:
+    driver: bridge
+
+
+volumes:
+  arqui_db_data: {}
